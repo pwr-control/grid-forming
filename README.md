@@ -1,2 +1,2 @@
-# grid_forming
-Investigation on grid forming control architecures.
+# Grid-Forming
+Investigation on grid-forming control architecures.
