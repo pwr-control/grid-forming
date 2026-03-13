@@ -116,6 +116,8 @@ use_current_controller_from_ccaller_module_2 = 0;
 
 use_moving_average_from_ccaller_mod1 = 1;
 use_moving_average_from_ccaller_mod2 = 0;
+use_moving_average_from_ccaller_mod3 = 0;
+use_moving_average_from_ccaller_mod4 = 0;
 
 use_single_phase_inverter_based_FHT = 0;
 use_single_phase_inverter_based_SOGI = 0;
