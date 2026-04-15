@@ -12,9 +12,9 @@ Fs = 10e3;        % Sampling frequency [Hz]
 t  = 0 : 1/Fs : T - 1/Fs;   % One period time vector
 
 Im1  = 100;        % Peak current amplitude [A]
-Im2  = 80;        % Peak current amplitude [A]
+Im2  = 100;        % Peak current amplitude [A]
 phi1 = 0;          % Initial phase of iu [rad]  (adjust as needed)
-phi2 = pi/6;          % Initial phase of iu [rad]  (adjust as needed)
+phi2 = 0;          % Initial phase of iu [rad]  (adjust as needed)
 
 %% --- Three-phase currents (120° displaced) ---
 iu = Im1 * cos(2*pi*f*t + phi1);
@@ -23,7 +23,8 @@ iv = Im2 * cos(2*pi*f*t + phi2 - 2*pi/3);
 iw = -(iu+iv);   % = -(iu+iv), guaranteed
 
 % Sanity check: max residual of Kirchhoff's current law
-fprintf('Max |iu+iv+iw| = %.2e A  (should be ~0)\n', max(abs(iu+iv+iw)));
+% fprintf('Max |iu+iv+iw| = %.2e A  (should be ~0)\n', max(abs(iu+iv+iw)));
+figure; plot(t, iu, t, iv, t, iw); grid on
 
 %% --- Fundamental phasors (DFT at f0) ---
 % Complex phasor = (2/N) * sum( x(t)*exp(-j*2*pi*f*t) )
