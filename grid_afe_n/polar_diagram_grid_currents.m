@@ -1,6 +1,6 @@
 
 clear; close all; clc;
-load sim_results_icc6inom.mat;
+load sim_results_icc4inom.mat;
 
 tc_eq = glb_time.tc*glb_time.decimation_tc;
 
