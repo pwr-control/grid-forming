@@ -1,12 +1,12 @@
 % =========================================================
-%  export_simulation_video_dual.m
+%  video_plot_grid_quantities.m
 %  Finestra sinistra:  subplot 1 → tensioni trifase
 %                      subplot 2 → correnti trifase
 %  Finestra destra:    subplot 2x2 → P1p, P1n, Q1p, Q1n
-%  Author: Davide Bagnara
+%  Author: Claude
 % =========================================================
 
-load ..\sim_results_icc2inom.mat;
+load ..\sim_results_icc20inom.mat;
 tc_eq = glb_time.tc*glb_time.decimation_tc;
 tc = tc_eq;
 N = glb_time.Nc;
@@ -30,7 +30,7 @@ time = t_tc_sim;
 sim_duration   = simlength;
 video_duration = 40.0;
 fps            = 30;
-output_file    = 'video_plot_grid_quantities_icc2inom.mp4';
+output_file    = 'video_plot_grid_quantities_icc20inom.mp4';
 
 % %% --- DEMO: rimuovi e sostituisci con i tuoi dati ---
 % tc   = 1e-5;
