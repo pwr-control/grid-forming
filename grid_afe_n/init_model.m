@@ -106,8 +106,8 @@ if enable_i_react_pos_steps
     time_i_react_pos_ref_1 = 1.5;
     time_i_react_pos_ref_2 = 2.0;
     i_react_pos_ref_1 = 0;
-    i_react_pos_ref_2 = 0.2;
-    i_react_pos_ref_3 = -0.2;
+    i_react_pos_ref_2 = ixi_ref_mod1*tan(acos(0.9));
+    i_react_pos_ref_3 = -ixi_ref_mod1*tan(acos(0.9));
 else
     time_i_react_pos_ref_1 = 0;
     time_i_react_pos_ref_2 = 0;
@@ -264,8 +264,8 @@ white_noise_power_inv_pwm_phase_shift_mod4 = 0.0;
 %[text] ### FRT Settings
 test_index = 25; % type of fault: index
 test_subindex = 4; % type of fault: subindex
-enable_frt_1 = 0; % faults generated from abc
-enable_frt_2 = 1; % faults generated from xi_eta_pos and xi_eta_neg
+enable_frt_1 = 1; % faults generated from abc
+enable_frt_2 = 0; % faults generated from xi_eta_pos and xi_eta_neg
 start_time_LVRT = 0.75;
 asymmetric_error_type = 1;
 frt_data = frt_settings(test_index, test_subindex, asymmetric_error_type, enable_frt_1, enable_frt_2, start_time_LVRT);
