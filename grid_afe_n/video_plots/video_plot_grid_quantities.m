@@ -6,80 +6,40 @@
 %  Author: Claude
 % =========================================================
 
-load ..\sim_results_icc20inom.mat;
+load ..\sim_results_icc20inom_3.mat;
+
+font_size_legend = 12;
+font_size_labels = 12;
+font_size_title = 12;
+
 tc_eq = glb_time.tc*glb_time.decimation_tc;
 tc = tc_eq;
-N = glb_time.Nc;
+t1 = 0.5;
+t2 = 3;
+N1 = floor(t1/tc);
+N2 = floor(t2/tc);
+N = N2-N1;
 
-ig_u = ig_abc_sim(:,1);
-ig_v = ig_abc_sim(:,2);
-ig_w = ig_abc_sim(:,3);
+ig_u = ig_abc_sim(N1:N2,1);
+ig_v = ig_abc_sim(N1:N2,2);
+ig_w = ig_abc_sim(N1:N2,3);
 
-vg_u = ug_abc_sim(:,1);
-vg_v = ug_abc_sim(:,2);
-vg_w = ug_abc_sim(:,3);
+vg_u = ug_abc_sim(N1:N2,1);
+vg_v = ug_abc_sim(N1:N2,2);
+vg_w = ug_abc_sim(N1:N2,3);
 
-P1p = P1p_global_sim;
-Q1p = Q1p_global_sim;
-P1n = P1n_global_sim;
-Q1n = Q1n_global_sim;
+P1p = P1p_global_sim(N1:N2);
+Q1p = Q1p_global_sim(N1:N2);
+P1n = P1n_global_sim(N1:N2);
+Q1n = Q1n_global_sim(N1:N2);
 
-time = t_tc_sim;
+time = t_tc_sim(N1:N2);
 
 %% Parametri
-sim_duration   = simlength;
-video_duration = 40.0;
+sim_duration   = t2-t1;
+video_duration = 20.0;
 fps            = 30;
-output_file    = 'video_plot_grid_quantities_icc20inom.mp4';
-
-% %% --- DEMO: rimuovi e sostituisci con i tuoi dati ---
-% tc   = 1e-5;
-% time = (0 : tc : sim_duration - tc)';
-% N    = numel(time);
-% f0   = 50;
-% Vph  = 400/sqrt(3)*sqrt(2);
-% Iph  = 800*sqrt(2);
-% phi  = 0.3;
-% 
-% % Tensioni (sistema bilanciato + piccola distorsione demo)
-% vg_u = Vph * sin(2*pi*f0*time            );
-% vg_v = Vph * sin(2*pi*f0*time - 2*pi/3  );
-% vg_w = Vph * sin(2*pi*f0*time - 4*pi/3  );
-% 
-% % Correnti con transitorio
-% ig_u = Iph * sin(2*pi*f0*time           - phi).*(1-exp(-4*time)) + 40*randn(size(time));
-% ig_v = Iph * sin(2*pi*f0*time - 2*pi/3  - phi).*(1-exp(-4*time)) + 40*randn(size(time));
-% ig_w = Iph * sin(2*pi*f0*time - 4*pi/3  - phi).*(1-exp(-4*time)) + 40*randn(size(time));
-% 
-% % Sequenza positiva/negativa con SRF (demo: P1p dominante, P1n piccolo)
-% win  = round(1/(f0*tc));
-% 
-% % Trasformazione di Clarke → alpha-beta
-% v_al = (2/3)*(vg_u - 0.5*vg_v - 0.5*vg_w);
-% v_be = (2/3)*(sqrt(3)/2*(vg_v - vg_w));
-% i_al = (2/3)*(ig_u - 0.5*ig_v - 0.5*ig_w);
-% i_be = (2/3)*(sqrt(3)/2*(ig_v - ig_w));
-% 
-% % dq+ (seq. positiva, rotazione +omega*t)
-% theta_p =  2*pi*f0*time;
-% vd_p =  v_al.*cos(theta_p) + v_be.*sin(theta_p);
-% vq_p = -v_al.*sin(theta_p) + v_be.*cos(theta_p);
-% id_p =  i_al.*cos(theta_p) + i_be.*sin(theta_p);
-% iq_p = -i_al.*sin(theta_p) + i_be.*cos(theta_p);
-% 
-% % dq- (seq. negativa, rotazione -omega*t)
-% theta_n = -2*pi*f0*time;
-% vd_n =  v_al.*cos(theta_n) + v_be.*sin(theta_n);
-% vq_n = -v_al.*sin(theta_n) + v_be.*cos(theta_n);
-% id_n =  i_al.*cos(theta_n) + i_be.*sin(theta_n);
-% iq_n = -i_al.*sin(theta_n) + i_be.*cos(theta_n);
-% 
-% % Potenze di sequenza (media mobile su un periodo)
-% P1p = movmean(1.5*(vd_p.*id_p + vq_p.*iq_p), win);
-% Q1p = movmean(1.5*(vq_p.*id_p - vd_p.*iq_p), win);
-% P1n = movmean(1.5*(vd_n.*id_n + vq_n.*iq_n), win);
-% Q1n = movmean(1.5*(vq_n.*id_n - vd_n.*iq_n), win);
-% % ----------------------------------------------------
+output_file    = 'video_plot_icc20inom_3.mp4';
 
 %% Colori
 col_u  = [0.25  0.72  1.00];
@@ -122,40 +82,44 @@ fig_L = figure('Color','k', 'Position',[50,  100, W, H], ...
 
 ax_v = subplot(2,1,1,'Parent',fig_L);
 setup_ax(ax_v);
-hl_vu = plot(ax_v,NaN,NaN,'Color',col_u,'LineWidth',1.2);
-hl_vv = plot(ax_v,NaN,NaN,'Color',col_v,'LineWidth',1.2);
-hl_vw = plot(ax_v,NaN,NaN,'Color',col_w,'LineWidth',1.2);
-hc_v  = xline(ax_v,0,'r--','LineWidth',0.9,'Alpha',0.7);
+hl_vu = plot(ax_v,NaN,NaN,'Color',col_u,'LineWidth',1.5);
+hl_vv = plot(ax_v,NaN,NaN,'Color',col_v,'LineWidth',1.5);
+hl_vw = plot(ax_v,NaN,NaN,'Color',col_w,'LineWidth',1.5);
+hc_v  = xline(ax_v,0,'r--','LineWidth',0.8,'Alpha',0.7);
 legend(ax_v,{'v_{g,u}','v_{g,v}','v_{g,w}'},'TextColor','w', ...
-       'Color','none','EdgeColor',[0.4 0.4 0.4],'Location','northeast','FontSize',8);
-title(ax_v,'Grid Voltages','Color','w','FontSize',11,'FontWeight','normal');
-ylabel(ax_v,'v_g  [V]','Color','w','FontSize',10);
-xlim(ax_v,[0,sim_duration]); ylim(ax_v,[yv_min,yv_max]);
+       'Color','none','EdgeColor',[0.4 0.4 0.4],'Location','northeast','FontSize',font_size_legend);
+title(ax_v,'Grid Voltages','Color','w','FontSize',font_size_title,'FontWeight','normal');
+ylabel(ax_v,'v_g  [V]','Color','w','FontSize',font_size_labels);
+xlim(ax_v,[t1,t2]); ylim(ax_v,[yv_min,yv_max]);
 set(ax_v,'XTickLabel',{});
 ht_v = make_text(ax_v,'w');
 
 ax_i = subplot(2,1,2,'Parent',fig_L);
 setup_ax(ax_i);
-hl_iu = plot(ax_i,NaN,NaN,'Color',col_u,'LineWidth',1.2);
-hl_iv = plot(ax_i,NaN,NaN,'Color',col_v,'LineWidth',1.2);
-hl_iw = plot(ax_i,NaN,NaN,'Color',col_w,'LineWidth',1.2);
-hc_i  = xline(ax_i,0,'r--','LineWidth',0.9,'Alpha',0.7);
+hl_iu = plot(ax_i,NaN,NaN,'Color',col_u,'LineWidth',1.5);
+hl_iv = plot(ax_i,NaN,NaN,'Color',col_v,'LineWidth',1.5);
+hl_iw = plot(ax_i,NaN,NaN,'Color',col_w,'LineWidth',1.5);
+hc_i  = xline(ax_i,0,'r--','LineWidth',0.8,'Alpha',0.7);
 legend(ax_i,{'i_{g,u}','i_{g,v}','i_{g,w}'},'TextColor','w', ...
-       'Color','none','EdgeColor',[0.4 0.4 0.4],'Location','northeast','FontSize',8);
-title(ax_i,'Grid Currents','Color','w','FontSize',11,'FontWeight','normal');
-ylabel(ax_i,'i_g  [A]','Color','w','FontSize',10);
-xlabel(ax_i,'Time  [s]','Color','w','FontSize',10);
-xlim(ax_i,[0,sim_duration]); ylim(ax_i,[yi_min,yi_max]);
+       'Color','none','EdgeColor',[0.4 0.4 0.4],'Location','northeast','FontSize',font_size_legend);
+title(ax_i,'Grid Currents','Color','w','FontSize',font_size_title,'FontWeight','normal');
+ylabel(ax_i,'i_g  [A]','Color','w','FontSize',font_size_labels);
+xlabel(ax_i,'Time  [s]','Color','w','FontSize',font_size_labels);
+xlim(ax_i,[t1,t2]); ylim(ax_i,[yi_min,yi_max]);
 ht_i = make_text(ax_i,'w');
 
 %% ---- Figura DESTRA: P1p P1n Q1p Q1n (2x2) ----
 fig_R = figure('Color','k', 'Position',[50+W+10, 100, W, H], ...
                'MenuBar','none','ToolBar','none');
 
-specs = { 'P_{1}^{+}', col_P1p, [yP1p_min, yP1p_max], 'P_{1}^{+}  [W]'  ;
-          'P_{1}^{-}', col_P1n, [yP1n_min, yP1n_max], 'P_{1}^{-}  [W]'  ;
-          'Q_{1}^{+}', col_Q1p, [yQ1p_min, yQ1p_max], 'Q_{1}^{+}  [VAr]';
-          'Q_{1}^{-}', col_Q1n, [yQ1n_min, yQ1n_max], 'Q_{1}^{-}  [VAr]'};
+% specs = { 'P_{1}^{+}', col_P1p, [yP1p_min, yP1p_max], 'P_{1}^{+}  [W]'  ;
+%           'P_{1}^{-}', col_P1n, [yP1n_min, yP1n_max], 'P_{1}^{-}  [W]'  ;
+%           'Q_{1}^{+}', col_Q1p, [yQ1p_min, yQ1p_max], 'Q_{1}^{+}  [VAr]';
+%           'Q_{1}^{-}', col_Q1n, [yQ1n_min, yQ1n_max], 'Q_{1}^{-}  [VAr]'};
+specs = { 'P_{1p}', col_P1p, [yP1p_min, yP1p_max], 'P_{1p}  [W]'  ;
+            'P_{1n}', col_P1n, [yP1n_min, yP1n_max], 'P_{1n}  [W]'  ;
+            'Q_{1p}', col_Q1p, [yQ1p_min, yQ1p_max], 'Q_{1p}  [VAr]';
+            'Q_{1n}', col_Q1n, [yQ1n_min, yQ1n_max], 'Q_{1n}  [VAr]'};
 sigs_R = {P1p, P1n, Q1p, Q1n};
 pos    = [1 2 3 4];   % posizione nel layout 2x2
 
@@ -169,11 +133,11 @@ tl = tiledlayout(fig_R, 2, 2, 'TileSpacing','compact','Padding','compact');
 for p = 1:4
     ax_R(p) = nexttile(tl, pos(p));
     setup_ax(ax_R(p));
-    hl_R(p) = plot(ax_R(p), NaN, NaN, 'Color', specs{p,2}, 'LineWidth', 1.3);
-    hc_R(p) = xline(ax_R(p), 0, 'r--', 'LineWidth', 0.9, 'Alpha', 0.7);
-    title(ax_R(p), specs{p,1}, 'Color', specs{p,2}, 'FontSize', 11, 'FontWeight','normal');
-    ylabel(ax_R(p), specs{p,4}, 'Color','w','FontSize',9);
-    xlim(ax_R(p), [0, sim_duration]);
+    hl_R(p) = plot(ax_R(p), NaN, NaN, 'Color', specs{p,2}, 'LineWidth', 1.5);
+    hc_R(p) = xline(ax_R(p), 0, 'r--', 'LineWidth', 0.8, 'Alpha', 0.7);
+    title(ax_R(p), specs{p,1}, 'Color', specs{p,2}, 'FontSize', font_size_title, 'FontWeight','normal');
+    ylabel(ax_R(p), specs{p,4}, 'Color','w','FontSize',font_size_labels);
+    xlim(ax_R(p), [t1, t2]);
     ylim(ax_R(p), specs{p,3});
     if p < 3
         set(ax_R(p),'XTickLabel',{});
@@ -243,13 +207,13 @@ fprintf('Video salvato: %s\n', output_file);
 function setup_ax(ax)
     set(ax, 'Color','k','XColor','w','YColor','w', ...
             'GridColor','w','GridAlpha',0.15, ...
-            'XGrid','on','YGrid','on','FontSize',9);
+            'XGrid','on','YGrid','on','FontSize',12);
     hold(ax,'on');
 end
 
 function h = make_text(ax, col)
     h = text(ax, 0.02, 0.93, '', ...
              'Units','normalized','Color',col, ...
-             'FontSize',9,'FontName','Consolas', ...
+             'FontSize',12,'FontName','Consolas', ...
              'VerticalAlignment','top');
 end

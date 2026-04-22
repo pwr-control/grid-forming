@@ -8,7 +8,7 @@
 % =========================================================
 clear; close all; clc
 
-load ..\sim_results_icc20inom.mat;
+load ..\sim_results_icc6inom_1.mat;
 tc_eq = glb_time.tc*glb_time.decimation_tc;
 tc = tc_eq;
 t1 = 0.5;
@@ -26,7 +26,7 @@ vg_u_20 = ug_abc_sim(N1:N2,1);
 vg_v_20 = ug_abc_sim(N1:N2,2);
 vg_w_20 = ug_abc_sim(N1:N2,3);
 
-load ..\sim_results_icc2inom.mat;
+load ..\sim_results_icc6inom_1.mat;
 
 ig_u_2 = ig_abc_sim(N1:N2,1);
 ig_v_2 = ig_abc_sim(N1:N2,2);
