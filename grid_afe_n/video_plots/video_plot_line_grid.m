@@ -12,11 +12,11 @@ font_size_legend = 12;
 font_size_labels = 12;
 font_size_title = 12;
 
-load ..\sim_results_icc20inom_3.mat;
+load ..\sim_results_icc4inom_3.mat;
 tc_eq = glb_time.tc*glb_time.decimation_tc;
 tc = tc_eq;
-t1 = 1.25;
-t2 = 1.45;
+t1 = 0.65;
+t2 = 1.20;
 N1 = floor(t1/tc);
 N2 = floor(t2/tc);
 N = N2 - N1 + 1;
@@ -43,9 +43,9 @@ time = t_tc_sim(N1:N2);
 
 %% Parametri
 sim_duration   = t2-t1;
-video_duration = 10.0;
+video_duration = 20.0;
 fps            = 30;
-output_file    = 'video_plot_line_grid_icc20inom.mp4';
+output_file    = 'video_plot_line_grid_icc4inom.mp4';
 
 %% Colori
 col_u  = [0.25  0.72  1.00];
@@ -86,7 +86,7 @@ hl_vw_g = plot(ax_v,NaN,NaN,'Color',col_w,'LineWidth',1.5);
 hc_v_g  = xline(ax_v,0,'r--','LineWidth',0.8,'Alpha',0.7);
 legend(ax_v,{'v_{g,u}','v_{g,v}','v_{g,w}'},'TextColor','w', ...
        'Color','none','EdgeColor',[0.4 0.4 0.4],'Location','northeast','FontSize',font_size_legend);
-title(ax_v,'Grid Voltages','Color','w','FontSize',font_size_title,'FontWeight','normal');
+title(ax_v,'Grid Voltages (Icc = 4 Inom)','Color','w','FontSize',font_size_title,'FontWeight','normal');
 ylabel(ax_v,'v_g  [V]','Color','w','FontSize',font_size_labels);
 xlim(ax_v,[t1,t2]); ylim(ax_v,[yv_min,yv_max]);
 set(ax_v,'XTickLabel',{});
@@ -100,7 +100,7 @@ hl_iw_g = plot(ax_i,NaN,NaN,'Color',col_w,'LineWidth',1.5);
 hc_i_g  = xline(ax_i,0,'r--','LineWidth',0.8,'Alpha',0.7);
 legend(ax_i,{'i_{g,u}','i_{g,v}','i_{g,w}'},'TextColor','w', ...
        'Color','none','EdgeColor',[0.4 0.4 0.4],'Location','northeast','FontSize',font_size_legend);
-title(ax_i,'Grid Currents','Color','w','FontSize',font_size_title,'FontWeight','normal');
+title(ax_i,'Grid Currents (Icc = 4 Inom)','Color','w','FontSize',font_size_title,'FontWeight','normal');
 ylabel(ax_i,'i_g  [A]','Color','w','FontSize',font_size_labels);
 xlabel(ax_i,'Time  [s]','Color','w','FontSize',font_size_labels);
 xlim(ax_i,[t1,t2]); ylim(ax_i,[yi_min,yi_max]);
@@ -119,7 +119,7 @@ hl_vw_line = plot(ax_v,NaN,NaN,'Color',col_w,'LineWidth',1.5);
 hc_v_line  = xline(ax_v,0,'r--','LineWidth',0.8,'Alpha',0.7);
 legend(ax_v,{'v_{line,u}','v_{line,v}','v_{line,w}'},'TextColor','w', ...
        'Color','none','EdgeColor',[0.4 0.4 0.4],'Location','northeast','FontSize',font_size_legend);
-title(ax_v,'Line Voltages','Color','w','FontSize',font_size_title,'FontWeight','normal');
+title(ax_v,'Line Voltages (Icc = 4 Inom)','Color','w','FontSize',font_size_title,'FontWeight','normal');
 ylabel(ax_v,'v_{line}  [V]','Color','w','FontSize',font_size_labels);
 xlim(ax_v,[t1,t2]); ylim(ax_v,[yv_min,yv_max]);
 set(ax_v,'XTickLabel',{});
@@ -133,7 +133,7 @@ hl_iw_line = plot(ax_i,NaN,NaN,'Color',col_w,'LineWidth',1.5);
 hc_i_line  = xline(ax_i,0,'r--','LineWidth',0.8,'Alpha',0.7);
 legend(ax_i,{'i_{line,u}','i_{line,v}','i_{line,w}'},'TextColor','w', ...
        'Color','none','EdgeColor',[0.4 0.4 0.4],'Location','northeast','FontSize',font_size_legend);
-title(ax_i,'Line Currents','Color','w','FontSize',font_size_title,'FontWeight','normal');
+title(ax_i,'Line Currents (Icc = 4 Inom)','Color','w','FontSize',font_size_title,'FontWeight','normal');
 ylabel(ax_i,'i_{line}  [A]','Color','w','FontSize',font_size_labels);
 xlabel(ax_i,'Time  [s]','Color','w','FontSize',font_size_labels);
 xlim(ax_i,[t1,t2]); ylim(ax_i,[yi_min,yi_max]);

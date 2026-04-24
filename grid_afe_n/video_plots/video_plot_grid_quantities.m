@@ -6,7 +6,7 @@
 %  Author: Claude
 % =========================================================
 
-load ..\sim_results_icc20inom_3.mat;
+load ..\sim_results_icc3inom_3.mat;
 
 font_size_legend = 12;
 font_size_labels = 12;
@@ -39,7 +39,7 @@ time = t_tc_sim(N1:N2);
 sim_duration   = t2-t1;
 video_duration = 20.0;
 fps            = 30;
-output_file    = 'video_plot_icc20inom_3.mp4';
+output_file    = 'video_plot_icc3inom.mp4';
 
 %% Colori
 col_u  = [0.25  0.72  1.00];
@@ -88,7 +88,7 @@ hl_vw = plot(ax_v,NaN,NaN,'Color',col_w,'LineWidth',1.5);
 hc_v  = xline(ax_v,0,'r--','LineWidth',0.8,'Alpha',0.7);
 legend(ax_v,{'v_{g,u}','v_{g,v}','v_{g,w}'},'TextColor','w', ...
        'Color','none','EdgeColor',[0.4 0.4 0.4],'Location','northeast','FontSize',font_size_legend);
-title(ax_v,'Grid Voltages','Color','w','FontSize',font_size_title,'FontWeight','normal');
+title(ax_v,'Grid Voltages (Icc = 3 Inom)','Color','w','FontSize',font_size_title,'FontWeight','normal');
 ylabel(ax_v,'v_g  [V]','Color','w','FontSize',font_size_labels);
 xlim(ax_v,[t1,t2]); ylim(ax_v,[yv_min,yv_max]);
 set(ax_v,'XTickLabel',{});
@@ -102,7 +102,7 @@ hl_iw = plot(ax_i,NaN,NaN,'Color',col_w,'LineWidth',1.5);
 hc_i  = xline(ax_i,0,'r--','LineWidth',0.8,'Alpha',0.7);
 legend(ax_i,{'i_{g,u}','i_{g,v}','i_{g,w}'},'TextColor','w', ...
        'Color','none','EdgeColor',[0.4 0.4 0.4],'Location','northeast','FontSize',font_size_legend);
-title(ax_i,'Grid Currents','Color','w','FontSize',font_size_title,'FontWeight','normal');
+title(ax_i,'Grid Currents (Icc = 3 Inom)','Color','w','FontSize',font_size_title,'FontWeight','normal');
 ylabel(ax_i,'i_g  [A]','Color','w','FontSize',font_size_labels);
 xlabel(ax_i,'Time  [s]','Color','w','FontSize',font_size_labels);
 xlim(ax_i,[t1,t2]); ylim(ax_i,[yi_min,yi_max]);
@@ -116,10 +116,10 @@ fig_R = figure('Color','k', 'Position',[50+W+10, 100, W, H], ...
 %           'P_{1}^{-}', col_P1n, [yP1n_min, yP1n_max], 'P_{1}^{-}  [W]'  ;
 %           'Q_{1}^{+}', col_Q1p, [yQ1p_min, yQ1p_max], 'Q_{1}^{+}  [VAr]';
 %           'Q_{1}^{-}', col_Q1n, [yQ1n_min, yQ1n_max], 'Q_{1}^{-}  [VAr]'};
-specs = { 'P_{1p}', col_P1p, [yP1p_min, yP1p_max], 'P_{1p}  [W]'  ;
-            'P_{1n}', col_P1n, [yP1n_min, yP1n_max], 'P_{1n}  [W]'  ;
-            'Q_{1p}', col_Q1p, [yQ1p_min, yQ1p_max], 'Q_{1p}  [VAr]';
-            'Q_{1n}', col_Q1n, [yQ1n_min, yQ1n_max], 'Q_{1n}  [VAr]'};
+specs = { 'P_{1p} (Icc = 3 Inom)', col_P1p, [yP1p_min, yP1p_max], 'P_{1p}  [W]'  ;
+            'P_{1n} (Icc = 3 Inom)', col_P1n, [yP1n_min, yP1n_max], 'P_{1n}  [W]'  ;
+            'Q_{1p} (Icc = 3 Inom)', col_Q1p, [yQ1p_min, yQ1p_max], 'Q_{1p}  [VAr]';
+            'Q_{1n} (Icc = 3 Inom)', col_Q1n, [yQ1n_min, yQ1n_max], 'Q_{1n}  [VAr]'};
 sigs_R = {P1p, P1n, Q1p, Q1n};
 pos    = [1 2 3 4];   % posizione nel layout 2x2
 
