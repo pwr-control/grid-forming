@@ -12,11 +12,11 @@ font_size_legend = 12;
 font_size_labels = 12;
 font_size_title = 12;
 
-load ..\sim_results_icc20inom_3.mat;
+load ..\voltage_dip_reference.mat;
 tc_eq = glb_time.tc*glb_time.decimation_tc;
 tc = tc_eq;
-t1 = 0.65;
-t2 = 1.20;
+t1 = 0.735;
+t2 = 0.825;
 N1 = floor(t1/tc);
 N2 = floor(t2/tc);
 N = N2 - N1 + 1;
@@ -45,7 +45,7 @@ time = t_tc_sim(N1:N2);
 sim_duration   = t2-t1;
 video_duration = 20.0;
 fps            = 30;
-output_file    = 'video_plot_line_grid_icc20inom.mp4';
+output_file    = 'voltage_dip_reference.mp4';
 
 %% Colori
 col_u  = [0.25  0.72  1.00];
@@ -78,66 +78,68 @@ W = 900;  H = 720;          % dimensioni di ciascuna finestra
 fig_L = figure('Color','k', 'Position',[50,  100, W, H], ...
                'MenuBar','none','ToolBar','none');
 
-ax_v = subplot(2,1,1,'Parent',fig_L);
+ax_v = subplot(1,1,1,'Parent',fig_L);
 setup_ax(ax_v);
-hl_vu_g = plot(ax_v,NaN,NaN,'Color',col_u,'LineWidth',1.5);
-hl_vv_g = plot(ax_v,NaN,NaN,'Color',col_v,'LineWidth',1.5);
-hl_vw_g = plot(ax_v,NaN,NaN,'Color',col_w,'LineWidth',1.5);
+hl_vu_g = plot(ax_v,NaN,NaN,'Color',col_u,'LineWidth',3);
+hl_vv_g = plot(ax_v,NaN,NaN,'Color',col_v,'LineWidth',3);
+hl_vw_g = plot(ax_v,NaN,NaN,'Color',col_w,'LineWidth',3);
 hc_v_g  = xline(ax_v,0,'r--','LineWidth',0.8,'Alpha',0.7);
 legend(ax_v,{'v_{g,u}','v_{g,v}','v_{g,w}'},'TextColor','w', ...
        'Color','none','EdgeColor',[0.4 0.4 0.4],'Location','northeast','FontSize',font_size_legend);
-title(ax_v,'Grid Voltages (Icc = 4 Inom)','Color','w','FontSize',font_size_title,'FontWeight','normal');
+title(ax_v,'Grid Voltages (Icc = 20 Inom)','Color','w','FontSize',font_size_title,'FontWeight','normal');
 ylabel(ax_v,'v_g  [V]','Color','w','FontSize',font_size_labels);
 xlim(ax_v,[t1,t2]); ylim(ax_v,[yv_min,yv_max]);
 set(ax_v,'XTickLabel',{});
+xlabel(ax_v,'Time  [s]','Color','w','FontSize',font_size_labels);
 ht_v_g = make_text(ax_v,'w');
 
-ax_i = subplot(2,1,2,'Parent',fig_L);
-setup_ax(ax_i);
-hl_iu_g = plot(ax_i,NaN,NaN,'Color',col_u,'LineWidth',1.5);
-hl_iv_g = plot(ax_i,NaN,NaN,'Color',col_v,'LineWidth',1.5);
-hl_iw_g = plot(ax_i,NaN,NaN,'Color',col_w,'LineWidth',1.5);
-hc_i_g  = xline(ax_i,0,'r--','LineWidth',0.8,'Alpha',0.7);
-legend(ax_i,{'i_{g,u}','i_{g,v}','i_{g,w}'},'TextColor','w', ...
-       'Color','none','EdgeColor',[0.4 0.4 0.4],'Location','northeast','FontSize',font_size_legend);
-title(ax_i,'Grid Currents (Icc = 4 Inom)','Color','w','FontSize',font_size_title,'FontWeight','normal');
-ylabel(ax_i,'i_g  [A]','Color','w','FontSize',font_size_labels);
-xlabel(ax_i,'Time  [s]','Color','w','FontSize',font_size_labels);
-xlim(ax_i,[t1,t2]); ylim(ax_i,[yi_min,yi_max]);
-ht_i_g = make_text(ax_i,'w');
+% ax_i = subplot(2,1,2,'Parent',fig_L);
+% setup_ax(ax_i);
+% hl_iu_g = plot(ax_i,NaN,NaN,'Color',col_u,'LineWidth',1.5);
+% hl_iv_g = plot(ax_i,NaN,NaN,'Color',col_v,'LineWidth',1.5);
+% hl_iw_g = plot(ax_i,NaN,NaN,'Color',col_w,'LineWidth',1.5);
+% hc_i_g  = xline(ax_i,0,'r--','LineWidth',0.8,'Alpha',0.7);
+% legend(ax_i,{'i_{g,u}','i_{g,v}','i_{g,w}'},'TextColor','w', ...
+%        'Color','none','EdgeColor',[0.4 0.4 0.4],'Location','northeast','FontSize',font_size_legend);
+% title(ax_i,'Grid Currents (Icc = 4 Inom)','Color','w','FontSize',font_size_title,'FontWeight','normal');
+% ylabel(ax_i,'i_g  [A]','Color','w','FontSize',font_size_labels);
+% xlabel(ax_i,'Time  [s]','Color','w','FontSize',font_size_labels);
+% xlim(ax_i,[t1,t2]); ylim(ax_i,[yi_min,yi_max]);
+% ht_i_g = make_text(ax_i,'w');
 
 %% ---- Figura DESTRA: tensioni + correnti ----
 W = 900;  H = 720;          % dimensioni di ciascuna finestra
 fig_R = figure('Color','k', 'Position',[50+W+10, 100, W, H], ...
                'MenuBar','none','ToolBar','none');
 
-ax_v = subplot(2,1,1,'Parent',fig_R);
+ax_v = subplot(1,1,1,'Parent',fig_R);
 setup_ax(ax_v);
-hl_vu_line = plot(ax_v,NaN,NaN,'Color',col_u,'LineWidth',1.5);
-hl_vv_line = plot(ax_v,NaN,NaN,'Color',col_v,'LineWidth',1.5);
-hl_vw_line = plot(ax_v,NaN,NaN,'Color',col_w,'LineWidth',1.5);
+hl_vu_line = plot(ax_v,NaN,NaN,'Color',col_u,'LineWidth',3);
+hl_vv_line = plot(ax_v,NaN,NaN,'Color',col_v,'LineWidth',3);
+hl_vw_line = plot(ax_v,NaN,NaN,'Color',col_w,'LineWidth',3);
 hc_v_line  = xline(ax_v,0,'r--','LineWidth',0.8,'Alpha',0.7);
 legend(ax_v,{'v_{line,u}','v_{line,v}','v_{line,w}'},'TextColor','w', ...
        'Color','none','EdgeColor',[0.4 0.4 0.4],'Location','northeast','FontSize',font_size_legend);
-title(ax_v,'Line Voltages (Icc = 4 Inom)','Color','w','FontSize',font_size_title,'FontWeight','normal');
+title(ax_v,'Line Voltages (Icc = 20 Inom)','Color','w','FontSize',font_size_title,'FontWeight','normal');
 ylabel(ax_v,'v_{line}  [V]','Color','w','FontSize',font_size_labels);
 xlim(ax_v,[t1,t2]); ylim(ax_v,[yv_min,yv_max]);
 set(ax_v,'XTickLabel',{});
+xlabel(ax_v,'Time  [s]','Color','w','FontSize',font_size_labels);
 ht_v_line = make_text(ax_v,'w');
 
-ax_i = subplot(2,1,2,'Parent',fig_R);
-setup_ax(ax_i);
-hl_iu_line = plot(ax_i,NaN,NaN,'Color',col_u,'LineWidth',1.5);
-hl_iv_line = plot(ax_i,NaN,NaN,'Color',col_v,'LineWidth',1.5);
-hl_iw_line = plot(ax_i,NaN,NaN,'Color',col_w,'LineWidth',1.5);
-hc_i_line  = xline(ax_i,0,'r--','LineWidth',0.8,'Alpha',0.7);
-legend(ax_i,{'i_{line,u}','i_{line,v}','i_{line,w}'},'TextColor','w', ...
-       'Color','none','EdgeColor',[0.4 0.4 0.4],'Location','northeast','FontSize',font_size_legend);
-title(ax_i,'Line Currents (Icc = 4 Inom)','Color','w','FontSize',font_size_title,'FontWeight','normal');
-ylabel(ax_i,'i_{line}  [A]','Color','w','FontSize',font_size_labels);
-xlabel(ax_i,'Time  [s]','Color','w','FontSize',font_size_labels);
-xlim(ax_i,[t1,t2]); ylim(ax_i,[yi_min,yi_max]);
-ht_i_line = make_text(ax_i,'w');
+% ax_i = subplot(2,1,2,'Parent',fig_R);
+% setup_ax(ax_i);
+% hl_iu_line = plot(ax_i,NaN,NaN,'Color',col_u,'LineWidth',1.5);
+% hl_iv_line = plot(ax_i,NaN,NaN,'Color',col_v,'LineWidth',1.5);
+% hl_iw_line = plot(ax_i,NaN,NaN,'Color',col_w,'LineWidth',1.5);
+% hc_i_line  = xline(ax_i,0,'r--','LineWidth',0.8,'Alpha',0.7);
+% legend(ax_i,{'i_{line,u}','i_{line,v}','i_{line,w}'},'TextColor','w', ...
+%        'Color','none','EdgeColor',[0.4 0.4 0.4],'Location','northeast','FontSize',font_size_legend);
+% title(ax_i,'Line Currents (Icc = 4 Inom)','Color','w','FontSize',font_size_title,'FontWeight','normal');
+% ylabel(ax_i,'i_{line}  [A]','Color','w','FontSize',font_size_labels);
+% xlabel(ax_i,'Time  [s]','Color','w','FontSize',font_size_labels);
+% xlim(ax_i,[t1,t2]); ylim(ax_i,[yi_min,yi_max]);
+% ht_i_line = make_text(ax_i,'w');
 
 %% ---- Render ----
 fprintf('Rendering %d frames...  ', n_frames);
@@ -154,10 +156,10 @@ for k = 1:n_frames
     set(hl_vw_g,'XData',time(1:idx),'YData',vg_w(1:idx));
     set(hc_v_g, 'Value',time(idx)); set(ht_v_g,'String',t_str);
 
-    set(hl_iu_g,'XData',time(1:idx),'YData',ig_u(1:idx));
-    set(hl_iv_g,'XData',time(1:idx),'YData',ig_v(1:idx));
-    set(hl_iw_g,'XData',time(1:idx),'YData',ig_w(1:idx));
-    set(hc_i_g, 'Value',time(idx)); set(ht_i_g,'String',t_str);
+    % set(hl_iu_g,'XData',time(1:idx),'YData',ig_u(1:idx));
+    % set(hl_iv_g,'XData',time(1:idx),'YData',ig_v(1:idx));
+    % set(hl_iw_g,'XData',time(1:idx),'YData',ig_w(1:idx));
+    % set(hc_i_g, 'Value',time(idx)); set(ht_i_g,'String',t_str);
 
     % --- aggiorna figura destra ---
     set(hl_vu_line,'XData',time(1:idx),'YData',vline_u(1:idx));
@@ -165,10 +167,10 @@ for k = 1:n_frames
     set(hl_vw_line,'XData',time(1:idx),'YData',vline_w(1:idx));
     set(hc_v_line, 'Value',time(idx)); set(ht_v_line,'String',t_str);
 
-    set(hl_iu_line,'XData',time(1:idx),'YData',iline_u(1:idx));
-    set(hl_iv_line,'XData',time(1:idx),'YData',iline_v(1:idx));
-    set(hl_iw_line,'XData',time(1:idx),'YData',iline_w(1:idx));
-    set(hc_i_line, 'Value',time(idx)); set(ht_i_line,'String',t_str);
+    % set(hl_iu_line,'XData',time(1:idx),'YData',iline_u(1:idx));
+    % set(hl_iv_line,'XData',time(1:idx),'YData',iline_v(1:idx));
+    % set(hl_iw_line,'XData',time(1:idx),'YData',iline_w(1:idx));
+    % set(hc_i_line, 'Value',time(idx)); set(ht_i_line,'String',t_str);
 
     % --- cattura e affianca i due frame ---
     fr_L = getframe(fig_L);

@@ -6,7 +6,7 @@
 %  Author: Claude
 % =========================================================
 
-load ..\sim_results_icc3inom_3.mat;
+load ..\sim_results_icc20inom_3.mat;
 
 font_size_legend = 12;
 font_size_labels = 12;
@@ -14,8 +14,8 @@ font_size_title = 12;
 
 tc_eq = glb_time.tc*glb_time.decimation_tc;
 tc = tc_eq;
-t1 = 0.5;
-t2 = 3;
+t1 = 1.95;
+t2 = 3.00;
 N1 = floor(t1/tc);
 N2 = floor(t2/tc);
 N = N2-N1;
@@ -39,7 +39,8 @@ time = t_tc_sim(N1:N2);
 sim_duration   = t2-t1;
 video_duration = 20.0;
 fps            = 30;
-output_file    = 'video_plot_icc3inom.mp4';
+% output_file    = 'video_plot_icc3inom_details_2.mp4';
+output_file    = 'reactive_setpoints.mp4';
 
 %% Colori
 col_u  = [0.25  0.72  1.00];
@@ -54,7 +55,9 @@ col_Q1n = [0.30  0.85  0.85];
 lim = @(x) deal(min(x)*1.15, max(x)*1.15);
 [yi_min, yi_max] = lim([ig_u; ig_v; ig_w]);
 [yv_min, yv_max] = lim([vg_u; vg_v; vg_w]);
-[yP1p_min, yP1p_max] = lim(P1p);
+% [yP1p_min, yP1p_max] = lim(P1p);
+yP1p_min = 0.75e6;
+yP1p_max = 1.15e6;
 [yP1n_min, yP1n_max] = lim(P1n);
 [yQ1p_min, yQ1p_max] = lim(Q1p);
 [yQ1n_min, yQ1n_max] = lim(Q1n);
@@ -88,7 +91,7 @@ hl_vw = plot(ax_v,NaN,NaN,'Color',col_w,'LineWidth',1.5);
 hc_v  = xline(ax_v,0,'r--','LineWidth',0.8,'Alpha',0.7);
 legend(ax_v,{'v_{g,u}','v_{g,v}','v_{g,w}'},'TextColor','w', ...
        'Color','none','EdgeColor',[0.4 0.4 0.4],'Location','northeast','FontSize',font_size_legend);
-title(ax_v,'Grid Voltages (Icc = 3 Inom)','Color','w','FontSize',font_size_title,'FontWeight','normal');
+title(ax_v,'Grid Voltages (Icc = 20 Inom)','Color','w','FontSize',font_size_title,'FontWeight','normal');
 ylabel(ax_v,'v_g  [V]','Color','w','FontSize',font_size_labels);
 xlim(ax_v,[t1,t2]); ylim(ax_v,[yv_min,yv_max]);
 set(ax_v,'XTickLabel',{});
@@ -102,7 +105,7 @@ hl_iw = plot(ax_i,NaN,NaN,'Color',col_w,'LineWidth',1.5);
 hc_i  = xline(ax_i,0,'r--','LineWidth',0.8,'Alpha',0.7);
 legend(ax_i,{'i_{g,u}','i_{g,v}','i_{g,w}'},'TextColor','w', ...
        'Color','none','EdgeColor',[0.4 0.4 0.4],'Location','northeast','FontSize',font_size_legend);
-title(ax_i,'Grid Currents (Icc = 3 Inom)','Color','w','FontSize',font_size_title,'FontWeight','normal');
+title(ax_i,'Grid Currents (Icc = 20 Inom)','Color','w','FontSize',font_size_title,'FontWeight','normal');
 ylabel(ax_i,'i_g  [A]','Color','w','FontSize',font_size_labels);
 xlabel(ax_i,'Time  [s]','Color','w','FontSize',font_size_labels);
 xlim(ax_i,[t1,t2]); ylim(ax_i,[yi_min,yi_max]);
@@ -116,10 +119,10 @@ fig_R = figure('Color','k', 'Position',[50+W+10, 100, W, H], ...
 %           'P_{1}^{-}', col_P1n, [yP1n_min, yP1n_max], 'P_{1}^{-}  [W]'  ;
 %           'Q_{1}^{+}', col_Q1p, [yQ1p_min, yQ1p_max], 'Q_{1}^{+}  [VAr]';
 %           'Q_{1}^{-}', col_Q1n, [yQ1n_min, yQ1n_max], 'Q_{1}^{-}  [VAr]'};
-specs = { 'P_{1p} (Icc = 3 Inom)', col_P1p, [yP1p_min, yP1p_max], 'P_{1p}  [W]'  ;
-            'P_{1n} (Icc = 3 Inom)', col_P1n, [yP1n_min, yP1n_max], 'P_{1n}  [W]'  ;
-            'Q_{1p} (Icc = 3 Inom)', col_Q1p, [yQ1p_min, yQ1p_max], 'Q_{1p}  [VAr]';
-            'Q_{1n} (Icc = 3 Inom)', col_Q1n, [yQ1n_min, yQ1n_max], 'Q_{1n}  [VAr]'};
+specs = { 'P_{1p} (Icc = 20 Inom)', col_P1p, [yP1p_min, yP1p_max], 'P_{1p}  [W]'  ;
+            'P_{1n} (Icc = 20 Inom)', col_P1n, [yP1n_min, yP1n_max], 'P_{1n}  [W]'  ;
+            'Q_{1p} (Icc = 20 Inom)', col_Q1p, [yQ1p_min, yQ1p_max], 'Q_{1p}  [VAr]';
+            'Q_{1n} (Icc = 20 Inom)', col_Q1n, [yQ1n_min, yQ1n_max], 'Q_{1n}  [VAr]'};
 sigs_R = {P1p, P1n, Q1p, Q1n};
 pos    = [1 2 3 4];   % posizione nel layout 2x2
 
@@ -133,7 +136,7 @@ tl = tiledlayout(fig_R, 2, 2, 'TileSpacing','compact','Padding','compact');
 for p = 1:4
     ax_R(p) = nexttile(tl, pos(p));
     setup_ax(ax_R(p));
-    hl_R(p) = plot(ax_R(p), NaN, NaN, 'Color', specs{p,2}, 'LineWidth', 1.5);
+    hl_R(p) = plot(ax_R(p), NaN, NaN, 'Color', specs{p,2}, 'LineWidth', 3);
     hc_R(p) = xline(ax_R(p), 0, 'r--', 'LineWidth', 0.8, 'Alpha', 0.7);
     title(ax_R(p), specs{p,1}, 'Color', specs{p,2}, 'FontSize', font_size_title, 'FontWeight','normal');
     ylabel(ax_R(p), specs{p,4}, 'Color','w','FontSize',font_size_labels);
