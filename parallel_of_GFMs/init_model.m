@@ -6,13 +6,14 @@
 % The init comes from the AFE init (afe_rst_ctrl.slx): the groups param.inv, param.psm and param.load are
 % computed but not read by this model, the template extras are off.
 %
-% Home license: at most 1000 non-virtual blocks. The model has about 998 (non_virtual_blocks_counting.m),
+% Home license: at most 1000 non-virtual blocks. The model has about 994 (non_virtual_blocks_counting.m),
 % the scopes inside modules 2 and 3 are commented out for this reason: every new block counts.
 %
 % Earthing (2026-11-05): battery referenced to earth through battery_1/HF and Ground Network, star point
 % of the emulator transformer secondary not earthed (IT), HF parasitic capacitances on both sides
-% (param.gnd). Design note: repositories-documentation/repos_doc/parallel_of_gfms (link "Design note" in
-% the model, PDF on the path when the documentation repository sits next to this one).
+% (param.gnd); earthing_cases.m compares the schemes (IT, high-resistance, solid). Design note:
+% repositories-documentation/repos_doc/parallel_of_gfms (link "Design note" in the model, PDF on the path
+% when the documentation repository sits next to this one).
 %
 % Everything the model needs is in the struct "param", one group per subsystem:
 %   param.sim       simulation settings (stop time, fixed step, solver, module count, thermal model choice)
@@ -359,18 +360,22 @@ param.battery.pack_1.C1 = param.battery.pack_1.C1/200;
 % transformer not earthed (IT). The common-mode voltage of the bridges divides on the capacitances to
 % earth of the two sides: with the battery much larger than the AC side, the battery stays almost still
 % and the LV winding carries the common mode. Values for about 1 MW at 1.1 kV DC, derivation in the
-% design note (section Earthing and parasitics).
-% DC side, per pole (battery_1/HF and Ground Network: C + R from each pole to earth, R from each pole to earth)
+% design note (section "Earthing of an industrial BESS and HF parasitics").
+% DC side, per pole (battery_1/HF and Ground Network: from each pole to earth a Capacitor with its series
+% resistance r, and an earthing resistor)
 param.gnd.c_batt_pole = 150e-9;     % [F] cells to racks and cooling plates, DC cables and busbars, to earth
                                     %     (about 0.3 uF for a 250 kWh string, half per pole; scale with the strings)
-param.gnd.r_batt_hf = 10;           % [Ohm] damping of the HF path (earth conductors, losses of the CM chokes)
+param.gnd.r_batt_hf = 10;           % [Ohm] series r of that capacitor: damping of the HF path (earth
+                                    %       conductors, losses of the common-mode choke cores)
 param.gnd.r_gnd_pole = 100e3;       % [Ohm] symmetric high-resistance earthing of the DC poles: first-fault
                                     %       current udc/r = 12 mA, 7 W of losses; with an insulation monitor
                                     %       (IEC 61557-8) use 1 MOhm or more: the IMD sees r/2 as insulation
-% AC side, per phase (grid/grid_emulator/3ph_Dyg_ssc: C with series R from each LV terminal to earth)
+% AC side, per phase. In the model the three phases are lumped at the star point of the transformer LV
+% winding (grid/grid_emulator/3ph_Dyg_ssc, block C_lv_earth = 3*c_ac_phase with r = r_ac_hf/3, in parallel
+% with R_star): the same common-mode path with two blocks less (Home license)
 param.gnd.c_ac_phase = 10e-9;       % [F] transformer LV winding to core and screen, LV cables, AC nodes of the
                                     %     IGBT modules to the heatsinks
-param.gnd.r_ac_hf = 10;             % [Ohm] series resistance of that path (capacitor block parameter r)
+param.gnd.r_ac_hf = 10;             % [Ohm] series resistance of that path, per phase
 % star point of the transformer LV winding to earth
 param.gnd.r_star = 1e9;             % [Ohm] 1e9: IT (not earthed); about 230: high-resistance earthing
                                     %       (first-fault current 1.7 A); 0.1: TN (solidly earthed, the battery
