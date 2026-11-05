@@ -9,8 +9,9 @@ function param = init_pgfm_droop(case_name)
 %   grid_forming_dqctrl (two-level bridge, LCL filter, control in one MATLAB Function) with p.ctrl.droop = 1, each
 %   on its own ideal DC source, on one 690 V bus with a local load (R in parallel with L + R per phase, star
 %   earthed) and a grid (source behind R + L, 10 % on 1 MVA) through a breaker; a switch in each module output
-%   (trip) with an optional cable, a switched load step. Built by build_pgfm_droop.m, tests in
-%   pgfm_droop_tests.m. The model reads the struct param from the workspace (base, or setVariable).
+%   (trip, RC snubber across each pole) with an optional cable, a switched load step. Built by
+%   build_pgfm_droop.m, tests in pgfm_droop_tests.m. The model reads the struct param from the workspace (base,
+%   or setVariable).
 %
 %   Module: 690 V, 250 kW (Sb = 250 kW/0.9 = 277.8 kVA), L1 500 uH, Cf 200 uF, L2 80 uH, udc 1070 V (the AFE of
 %   parallel_of_GFMs with a small grid-side choke), 4 kHz PWM with double update; the control parameters are those
@@ -69,6 +70,9 @@ function param = init_pgfm_droop(case_name)
     param.load.p_step = 150e3;                  % [W] load step
     param.cable.L = 1e-7*ones(1, 3);            % [H] cable of each module (negligible by default)
     param.cable.R = 1e-5*ones(1, 3);            % [Ohm]
+    param.snub.C  = 5e-6;                       % [F] RC across each pole of the module output switch: takes the
+    param.snub.R  = 4;                          % [Ohm] current of L2 at the trip, sqrt(L2/C) = 4 Ohm, zeta 0.5;
+                                                %   open switch: < 0.6 % of the base current at 50 Hz
 
     % ---- test bench
     tb.name   = case_name;

@@ -9,8 +9,11 @@ function mdl = build_pgfm_droop(do_save)
 %     module_1..3  library block grid_forming_dqctrl_mod1 (p = param.mod(k), droop mode), its ideal DC source
 %                  (floating, param.mod(k).hw.udc_nom), the sync input as a step of the setpoint offsets
 %                  (param.tb.sync_t(k), param.tb.sync_after(:, k)), the trip switch of the output
-%                  (param.tb.t_trip(k)) and a cable (param.cable.L(k), param.cable.R(k)); logs log_k (ctrl_log,
-%                  55x1) and m_k (measurements, 17x1) at param.sim.ts_log, timeseries
+%                  (param.tb.t_trip(k)) with an RC snubber across each pole (param.snub.C, param.snub.R) and a
+%                  cable (param.cable.L(k), param.cable.R(k)); logs log_k (ctrl_log, 55x1) and m_k
+%                  (measurements, 17x1) at param.sim.ts_log, timeseries. The snubber takes the current of L2
+%                  when the switch opens: a real contactor carries it in the arc to the current zero, an ideal
+%                  switch alone would cut it in one step (spike of L2 di/dt at the terminals of the block)
 %     network      bus of the three modules: local load per phase R // (L + R) to the earthed star
 %                  (param.load.R, L, RL), load step R_step through a switch closing at param.tb.t_step, grid
 %                  (source param.grid.u_peak at param.grid.f behind param.grid.R + param.grid.L, earthed star)
@@ -97,7 +100,7 @@ end
 
 % --------------------------------------------------------------------------------------------------------------
 function local_module(sys, k, blk)
-%LOCAL_MODULE  One module: library block, DC source, sync step, trip switches, cable, logs.
+%LOCAL_MODULE  One module: library block, DC source, sync step, trip switches with snubbers, cable, logs.
     add_block('built-in/Inport', [sys '/t_master'], 'Port', '1', 'Position', [300 43 330 57]);
     ph_names = {'a', 'b', 'c'};
     for i = 1:3
@@ -133,6 +136,8 @@ function local_module(sys, k, blk)
             'Position', [100 y 140 y + 30]);
         add_block('fl_lib/Electrical/Electrical Elements/Switch', [sys '/trip_' ph_names{i}], ...
             'R_closed', '1e-4', 'G_open', '1e-6', 'Threshold', '0.5', 'Position', [240 y 280 y + 30]);
+        add_block('fl_lib/Electrical/Electrical Elements/Capacitor', [sys '/snub_' ph_names{i}], ...
+            'c', 'param.snub.C', 'r', 'param.snub.R', 'Position', [240 390 + 50*(i - 1) 280 410 + 50*(i - 1)]);
     end
 
     % signals
@@ -143,13 +148,15 @@ function local_module(sys, k, blk)
     add_line(sys, 'gfm/3', 'sync_out/1', 'autorouting', 'on');
     add_line(sys, 'trip_cmd/1', 'trip_sps/1', 'autorouting', 'on');
 
-    % physical: port -> cable -> trip switch -> ug of the block; DC source on Udc(+), Udc(-)
+    % physical: port -> cable -> trip switch (snubber across) -> ug of the block; DC source on Udc(+), Udc(-)
     pg = get_param(g, 'PortHandles');
     for i = 1:3
         sw = local_switch(sys, ['trip_' ph_names{i}], 'trip_sps');
         local_connect(sys, local_pmio(sys, ph_names{i}), local_pc(sys, ['cable_' ph_names{i}], 'L', 1));
         local_connect(sys, local_pc(sys, ['cable_' ph_names{i}], 'R', 1), sw(1));
         local_connect(sys, sw(2), pg.LConn(i));
+        local_connect(sys, sw(1), local_pc(sys, ['snub_' ph_names{i}], 'L', 1));
+        local_connect(sys, local_pc(sys, ['snub_' ph_names{i}], 'R', 1), sw(2));
     end
     local_connect(sys, pg.RConn(1), local_pc(sys, 'Vdc', 'L', 1));
     local_connect(sys, pg.RConn(2), local_pc(sys, 'Vdc', 'R', 1));
