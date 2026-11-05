@@ -1,0 +1,10 @@
+case T1, 1.40 s simulated in 230 s
+  end: f [50 50 50] Hz, P_f [0.8 0.4 0.4], Q_f [-0.142 0.0051 0.0051], |u| [0.976 0.976 0.976] pu
+  0.600 s setpoint step of module 1:
+    f 50.001 -> 50.000 Hz (extreme 49.985), rocof 2.74 Hz/s, |u| 0.978 -> 0.976 pu (min 0.974, max 0.980)
+    P_f [0.4 0.4 0.4] -> [0.8 0.4 0.4], Q_f [-0.00525 -0.00525 -0.00525] -> [-0.142 0.00508 0.00508] pu
+    i_peak 1.040 pu (1 ms average 1.034), P_f settled in 0.172 s, overshoot 5.1 %
+  pass P_f = P* on the grid: max error 0.0000 pu
+  pass f = 50(1 + mp(P* - P_f)): max error 0.0001 Hz
+  pass damped: peak-to-peak of P_f 0.0023 pu
+  pass |i_s| (1 ms average) below i_max + 0.05: max 1.034 pu

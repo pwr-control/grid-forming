@@ -1,0 +1,11 @@
+case T0_off, 1.20 s simulated in 201 s
+  end: f [49.761 49.696 49.831] Hz, P_f [0.639 0.704 0.569], Q_f [0.204 0.18 0.229], |u| [0.925 0.925 0.925] pu
+  0.100 s black start:
+    f 49.938 -> 49.763 Hz (extreme 49.759), rocof 6.06 Hz/s, |u| 0.000 -> 0.925 pu (min 0.000, max 0.935)
+    P_f [0 0 0] -> [0.639 0.704 0.569], Q_f [0 0 0] -> [0.204 0.18 0.229] pu
+    i_peak 1.018 pu (1 ms average 1.010), P_f settled in 0.281 s, overshoot 0.0 %, |u| rise to 90 % in 0.090 s, overshoot 1.1 %
+  info P sharing: spread 0.1345 pu (21.1 % of the mean)
+  info Q sharing: spread 0.0497 pu
+  info f = 50(1 + mp(P* - P_f)): max error 0.0001 Hz
+  pass damped: peak-to-peak of P_f 0.0021 pu
+  pass |i_s| (1 ms average) below i_max + 0.05: max 1.010 pu

@@ -1,5 +1,19 @@
-%[text] # afe\_uvw\_three\_phase (afe\_rst\_ctrl.slx): model initialization (param structure by subsystem)
-% Rev. 01, 2026-09-29. Replaces the flat-workspace init_model.m (kept as init_model_legacy.m).
+%[text] # pgfm\_ctrl\_analysis.slx: three modules in parallel, model initialization (param structure by subsystem)
+% Rev. 02, 2026-11-05. Three AFE modules (afe_abc_inv_psm_mod1..3) on the grid emulator, DC side on one
+% lithium-ion battery (battery_1). Every module has its own clock (global timing: time_afe1..3, gains
+% param.afe.behav.time_gain_module_1..3), aligned to time_master by its phase_compensation_1, and its own
+% references (param.afe.ref.ixi_ref_modN, u_cm_comp_modN, param.afe.behav.pwm_phase_shift_modN).
+% The init comes from the AFE init (afe_rst_ctrl.slx): the groups param.inv, param.psm and param.load are
+% computed but not read by this model, the template extras are off.
+%
+% Home license: at most 1000 non-virtual blocks. The model has about 994 (non_virtual_blocks_counting.m),
+% the scopes inside modules 2 and 3 are commented out for this reason: every new block counts.
+%
+% Earthing (2026-11-05): battery referenced to earth through battery_1/HF and Ground Network, star point
+% of the emulator transformer secondary not earthed (IT), HF parasitic capacitances on both sides
+% (param.gnd); earthing_cases.m compares the schemes (IT, high-resistance, solid). Design note:
+% repositories-documentation/repos_doc/parallel_of_gfms (link "Design note" in the model, PDF on the path
+% when the documentation repository sits next to this one).
 %
 % Everything the model needs is in the struct "param", one group per subsystem:
 %   param.sim       simulation settings (stop time, fixed step, solver, module count, thermal model choice)
@@ -18,6 +32,8 @@
 %   param.thermal   heatsink inputs;                   param.thermal.heatsink  liquid_cooled_plate_2kw_setup object
 %   param.dclink    DC-link stray inductance (Bode check only, not read by the model)
 %   param.dev       names of the semiconductor datasets
+%   param.battery   DC source of the three modules: .pack_1 (lithium_ion_battery_setup), read by battery_1
+%   param.gnd       HF parasitic capacitances to earth and earthing resistances (battery_1, grid emulator)
 %
 % Naming rule: the leaf name of the old workspace variable is kept (kp_align -> param.ctrl.kp_align),
 % except that inside param.afe and param.inv the afe_/inv_ tag becomes redundant and is dropped
@@ -34,17 +50,11 @@
 % changed for this model only goes in ./private with the same name: MATLAB resolves private functions
 % before the path, for the files of this folder only, and the list of such overrides is printed at
 % every run (see below).
-%
-% The last code section ("Transition: legacy workspace names") exports the old names still read by
-% afe_inv_psm.slx. migrate_afe_inv_psm.m rewrites the model to param.*; once done, set
-% export_legacy_names = false and delete that section.
 
 clear;
 [model, options] = init_environment('pgfm_ctrl_analysis');
 s = tf('s');
 param = struct();
-
-addpath(genpath('C:\github\library\library\masked_models\afe_uvw_ctrl\private'));
 
 % functions overridden for this model: ./private takes precedence over the library
 overrides = dir(fullfile(fileparts(mfilename('fullpath')), 'private', '*.m'));
@@ -52,6 +62,14 @@ if ~isempty(overrides)
     fprintf('%s init: local overrides in private/: %s\n', model, strjoin({overrides.name}, ', '));
 end
 clear overrides
+
+% design note of this model on the path: the link "Design note" of the model opens parallel_of_gfms.pdf from
+% repositories-documentation/repos_doc/parallel_of_gfms when that repository sits next to this one
+% (C:\github\pwr-control\repositories-documentation), otherwise the copy on GitHub
+doc_dir = fullfile(fileparts(fileparts(fileparts(mfilename('fullpath')))), 'repositories-documentation', ...
+    'repos_doc', 'parallel_of_gfms');
+if isfolder(doc_dir), addpath(doc_dir); end
+clear doc_dir
 %[text] ## Simulation
 param.sim.simlength = 1.75;                 % [s] model StopTime
 param.sim.tc = 1e-6;                     % [s] fixed step (model FixedStep) and logging base
@@ -60,9 +78,8 @@ param.sim.transmission_delay = 125e-6*2;    % [s]
 param.sim.sst_num_of_modules = 2;
 param.sim.time_aux_power_supply_fault = 1e3;    % [s] never, in this run
 
-% one/two modules
-param.sim.number_of_modules = 1;
-param.sim.enable_two_modules = param.sim.number_of_modules;
+% modules in parallel: the model has three (afe_abc_inv_psm_mod1..3), wired in the diagram
+param.sim.number_of_modules = 3;
 
 % power stage model: MOSFET with thermal model, IGBT with thermal model, or ideal switch
 param.sim.use_mosfet_thermal_model = 0;
@@ -76,9 +93,10 @@ end
 % white noise power used by the module behaviour settings (clock and PWM phase noise)
 param.sim.wnp = 0;
 
-% stages of the shared init template not present in afe_inv_psm.slx (DAB, CLLC, PSFBC, ISOP rail,
-% single-phase inverter, UPQC, IM, battery, load transformer): see add_template_extras at the end
-param.sim.build_template_extras = true;
+% stages of the shared init template not present in this model (DAB, CLLC, PSFBC, ISOP rail,
+% single-phase inverter, UPQC, IM, load transformer): see add_template_extras at the end. The battery,
+% which this model uses, is set in the main body (section Battery)
+param.sim.build_template_extras = false;
 %[text] ## Timing
 param.time.fpwm = 4e3;                              % [Hz] base PWM frequency
 param.time.t_measure = param.sim.simlength;         % [s]
@@ -316,6 +334,52 @@ param.afe.behav.pwm_phase_shift_mod3 = 0;
 param.afe.behav.white_noise_power_pwm_phase_shift_mod3 = 0.0;
 param.afe.behav.pwm_phase_shift_mod4 = 0;
 param.afe.behav.white_noise_power_pwm_phase_shift_mod4 = 0.0;
+%[text] ## Battery
+% DC source shared by the three modules (block battery_1, library lithium_ion_battery): it reads
+% param.battery.pack_1 and param.battery.nominal_battery_voltage_1. Same numbers as the template extras
+% this section comes from: a pack sized as one module (250 kW), while the three modules together can
+% draw up to three times that.
+param.battery.nominal_battery_voltage_1 = param.afe.hw.udc_nom;   % [V]
+param.battery.nominal_battery_power = 250e3;                       % [W]
+param.battery.initial_battery_soc = 0.85;
+% lithium_ion_battery_setup takes the charge capacity [Ah] as third argument: 1C rating,
+% capacity = rated current x 1 h
+param.battery.charge_capacity_1 = param.battery.nominal_battery_power/param.battery.nominal_battery_voltage_1;
+
+b = param.battery;
+param.battery.pack_1 = lithium_ion_battery_setup(b.nominal_battery_voltage_1, b.nominal_battery_power, ...
+    b.charge_capacity_1, b.initial_battery_soc, param.glb_time.ts_dab);
+clear b
+
+% special settings for simulation
+param.battery.pack_1.R0 = param.battery.pack_1.R0/2;
+param.battery.pack_1.R1 = param.battery.pack_1.R1/2;
+param.battery.pack_1.C1 = param.battery.pack_1.C1/200;
+%[text] ## HF parasitics and earthing
+% Earthing scheme of a BESS with an LV/MV transformer: battery referenced to earth, LV side of the
+% transformer not earthed (IT). The common-mode voltage of the bridges divides on the capacitances to
+% earth of the two sides: with the battery much larger than the AC side, the battery stays almost still
+% and the LV winding carries the common mode. Values for about 1 MW at 1.1 kV DC, derivation in the
+% design note (section "Earthing of an industrial BESS and HF parasitics").
+% DC side, per pole (battery_1/HF and Ground Network: from each pole to earth a Capacitor with its series
+% resistance r, and an earthing resistor)
+param.gnd.c_batt_pole = 150e-9;     % [F] cells to racks and cooling plates, DC cables and busbars, to earth
+                                    %     (about 0.3 uF for a 250 kWh string, half per pole; scale with the strings)
+param.gnd.r_batt_hf = 10;           % [Ohm] series r of that capacitor: damping of the HF path (earth
+                                    %       conductors, losses of the common-mode choke cores)
+param.gnd.r_gnd_pole = 100e3;       % [Ohm] symmetric high-resistance earthing of the DC poles: first-fault
+                                    %       current udc/r = 12 mA, 7 W of losses; with an insulation monitor
+                                    %       (IEC 61557-8) use 1 MOhm or more: the IMD sees r/2 as insulation
+% AC side, per phase. In the model the three phases are lumped at the star point of the transformer LV
+% winding (grid/grid_emulator/3ph_Dyg_ssc, block C_lv_earth = 3*c_ac_phase with r = r_ac_hf/3, in parallel
+% with R_star): the same common-mode path with two blocks less (Home license)
+param.gnd.c_ac_phase = 10e-9;       % [F] transformer LV winding to core and screen, LV cables, AC nodes of the
+                                    %     IGBT modules to the heatsinks
+param.gnd.r_ac_hf = 10;             % [Ohm] series resistance of that path, per phase
+% star point of the transformer LV winding to earth
+param.gnd.r_star = 1e9;             % [Ohm] 1e9: IT (not earthed); about 230: high-resistance earthing
+                                    %       (first-fault current 1.7 A); 0.1: TN (solidly earthed, the battery
+                                    %       then carries the common mode)
 %[text] ## Inverter
 %[text] ### Hardware
 % Same data sets as three_phase_inverter_hwdata of the library (the 480 V set keeps the 400 V machine
@@ -626,7 +690,7 @@ param.dclink.Z_Lstray_dclink = param.dclink.Z_HF_Lstray_dclink*param.dclink.Z_LF
 param.dclink.ZCFi = 7/s/param.afe.hw.CFi;
 param.dclink.sys_dclink = minreal(param.dclink.ZCFi/(param.dclink.ZCFi + param.dclink.Z_Lstray_dclink));
 figure; bode(param.dclink.sys_dclink, param.dclink.Z_Lstray_dclink, options); grid on %[output:65c69798]
-%[text] ## Template extras (not used by afe\_inv\_psm.slx)
+%[text] ## Template extras (not used by pgfm\_ctrl\_analysis.slx)
 if param.sim.build_template_extras %[output:group:7a6c4b56]
     param = add_template_extras(param, options); %[output:4ab8b4aa] %[output:6debe77d] %[output:32ef08ab] %[output:6ac8e065] %[output:98c8ccfa]
 end %[output:group:7a6c4b56]
@@ -670,10 +734,11 @@ assignin('base', 'PowerMeterIecBus', PowerMeterIecBus);
 clear names elems e k
 %[text] ## Local functions
 function param = add_template_extras(param, options)
-% Parts of the shared init template not used by afe_inv_psm.slx, kept so that nothing of the
+% Parts of the shared init template not used by pgfm_ctrl_analysis.slx, kept so that nothing of the
 % legacy init_model.m is lost. Enabled by param.sim.build_template_extras = true.
 % Same convention: one group per stage (param.spinv, param.dab, param.psfbc, param.cllc,
 % param.isop_rail, param.upqc, param.im, param.battery, param.trafo_load), each with .hw, .ctrl, devices.
+% param.battery.pack_1 is also set in the main body (section Battery) with the same numbers.
 
 s = tf('s');
 ts = param.glb_time.ts_inv;

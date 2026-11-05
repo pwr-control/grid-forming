@@ -1,0 +1,15 @@
+case T3, 2.50 s simulated in 352 s
+  end: f [49.623 49.623 49.623] Hz, P_f [0.777 0.777 0.777], Q_f [0.201 0.201 0.201], |u| [0.917 0.917 0.917] pu
+  1.000 s grid lost:
+    f 50.000 -> 49.762 Hz (extreme 49.758), rocof 4.52 Hz/s, |u| 0.978 -> 0.926 pu (min 0.824, max 0.942)
+    P_f [0.4 0.4 0.4] -> [0.638 0.638 0.638], Q_f [-0.00549 -0.00549 -0.00549] -> [0.204 0.204 0.204] pu
+    i_peak 0.715 pu (1 ms average 0.712), P_f settled in 0.148 s, overshoot 0.1 %
+  1.500 s load step +150 kW:
+    f 49.762 -> 49.623 Hz (extreme 49.618), rocof 2.67 Hz/s, |u| 0.926 -> 0.917 pu (min 0.851, max 0.921)
+    P_f [0.638 0.638 0.638] -> [0.777 0.777 0.777], Q_f [0.204 0.204 0.204] -> [0.201 0.201 0.201] pu
+    i_peak 0.861 pu (1 ms average 0.858), P_f settled in 0.134 s, overshoot 0.3 %
+  pass P sharing: spread 0.0000 pu (0.0 % of the mean)
+  pass Q sharing: spread 0.0000 pu
+  pass f = 50(1 + mp(P* - P_f)): max error 0.0000 Hz
+  pass damped: peak-to-peak of P_f 0.0008 pu
+  pass |i_s| (1 ms average) below i_max + 0.05: max 0.858 pu
