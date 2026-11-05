@@ -6,8 +6,13 @@
 % The init comes from the AFE init (afe_rst_ctrl.slx): the groups param.inv, param.psm and param.load are
 % computed but not read by this model, the template extras are off.
 %
-% Home license: at most 1000 non-virtual blocks. The model has about 955 (non_virtual_blocks_counting.m),
+% Home license: at most 1000 non-virtual blocks. The model has about 998 (non_virtual_blocks_counting.m),
 % the scopes inside modules 2 and 3 are commented out for this reason: every new block counts.
+%
+% Earthing (2026-11-05): battery referenced to earth through battery_1/HF and Ground Network, star point
+% of the emulator transformer secondary not earthed (IT), HF parasitic capacitances on both sides
+% (param.gnd). Design note: repositories-documentation/repos_doc/parallel_of_gfms (link "Design note" in
+% the model, PDF on the path when the documentation repository sits next to this one).
 %
 % Everything the model needs is in the struct "param", one group per subsystem:
 %   param.sim       simulation settings (stop time, fixed step, solver, module count, thermal model choice)
@@ -27,6 +32,7 @@
 %   param.dclink    DC-link stray inductance (Bode check only, not read by the model)
 %   param.dev       names of the semiconductor datasets
 %   param.battery   DC source of the three modules: .pack_1 (lithium_ion_battery_setup), read by battery_1
+%   param.gnd       HF parasitic capacitances to earth and earthing resistances (battery_1, grid emulator)
 %
 % Naming rule: the leaf name of the old workspace variable is kept (kp_align -> param.ctrl.kp_align),
 % except that inside param.afe and param.inv the afe_/inv_ tag becomes redundant and is dropped
@@ -55,6 +61,14 @@ if ~isempty(overrides)
     fprintf('%s init: local overrides in private/: %s\n', model, strjoin({overrides.name}, ', '));
 end
 clear overrides
+
+% design note of this model on the path: the link "Design note" of the model opens parallel_of_gfms.pdf from
+% repositories-documentation/repos_doc/parallel_of_gfms when that repository sits next to this one
+% (C:\github\pwr-control\repositories-documentation), otherwise the copy on GitHub
+doc_dir = fullfile(fileparts(fileparts(fileparts(mfilename('fullpath')))), 'repositories-documentation', ...
+    'repos_doc', 'parallel_of_gfms');
+if isfolder(doc_dir), addpath(doc_dir); end
+clear doc_dir
 %[text] ## Simulation
 param.sim.simlength = 1.75;                 % [s] model StopTime
 param.sim.tc = 1e-6;                     % [s] fixed step (model FixedStep) and logging base
@@ -340,6 +354,27 @@ clear b
 param.battery.pack_1.R0 = param.battery.pack_1.R0/2;
 param.battery.pack_1.R1 = param.battery.pack_1.R1/2;
 param.battery.pack_1.C1 = param.battery.pack_1.C1/200;
+%[text] ## HF parasitics and earthing
+% Earthing scheme of a BESS with an LV/MV transformer: battery referenced to earth, LV side of the
+% transformer not earthed (IT). The common-mode voltage of the bridges divides on the capacitances to
+% earth of the two sides: with the battery much larger than the AC side, the battery stays almost still
+% and the LV winding carries the common mode. Values for about 1 MW at 1.1 kV DC, derivation in the
+% design note (section Earthing and parasitics).
+% DC side, per pole (battery_1/HF and Ground Network: C + R from each pole to earth, R from each pole to earth)
+param.gnd.c_batt_pole = 150e-9;     % [F] cells to racks and cooling plates, DC cables and busbars, to earth
+                                    %     (about 0.3 uF for a 250 kWh string, half per pole; scale with the strings)
+param.gnd.r_batt_hf = 10;           % [Ohm] damping of the HF path (earth conductors, losses of the CM chokes)
+param.gnd.r_gnd_pole = 100e3;       % [Ohm] symmetric high-resistance earthing of the DC poles: first-fault
+                                    %       current udc/r = 12 mA, 7 W of losses; with an insulation monitor
+                                    %       (IEC 61557-8) use 1 MOhm or more: the IMD sees r/2 as insulation
+% AC side, per phase (grid/grid_emulator/3ph_Dyg_ssc: C with series R from each LV terminal to earth)
+param.gnd.c_ac_phase = 10e-9;       % [F] transformer LV winding to core and screen, LV cables, AC nodes of the
+                                    %     IGBT modules to the heatsinks
+param.gnd.r_ac_hf = 10;             % [Ohm] series resistance of that path (capacitor block parameter r)
+% star point of the transformer LV winding to earth
+param.gnd.r_star = 1e9;             % [Ohm] 1e9: IT (not earthed); about 230: high-resistance earthing
+                                    %       (first-fault current 1.7 A); 0.1: TN (solidly earthed, the battery
+                                    %       then carries the common mode)
 %[text] ## Inverter
 %[text] ### Hardware
 % Same data sets as three_phase_inverter_hwdata of the library (the 480 V set keeps the 400 V machine
