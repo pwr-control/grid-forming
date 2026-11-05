@@ -73,7 +73,8 @@ function param = init_pgfm_droop(case_name)
     % ---- test bench
     tb.name   = case_name;
     tb.t_end  = 2.0;                            % [s]
-    tb.t_open = 1.0;                            % [s] opening of the grid breaker (inf: never; 0: open from the start)
+    tb.t_close = 1e-3;                          % [s] closing of the grid breaker: energization of the bus
+    tb.t_open  = 1.0;                           % [s] opening of the grid breaker (inf: never; 0: never closed)
     tb.t_step = inf;                            % [s] load step
     tb.t_trip = [inf inf inf];                  % [s] trip of each module (output switch opens)
     tb.sync_t = [inf inf inf];                  % [s] time of the step of the sync input of each module

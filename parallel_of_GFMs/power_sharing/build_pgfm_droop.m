@@ -14,10 +14,14 @@ function mdl = build_pgfm_droop(do_save)
 %     network      bus of the three modules: local load per phase R // (L + R) to the earthed star
 %                  (param.load.R, L, RL), load step R_step through a switch closing at param.tb.t_step, grid
 %                  (source param.grid.u_peak at param.grid.f behind param.grid.R + param.grid.L, earthed star)
-%                  through a breaker opening at param.tb.t_open (0: open from the start, inf: never)
+%                  through a breaker closed from param.tb.t_close to param.tb.t_open (t_open = 0: never closed,
+%                  inf: never opened). The breaker is open at t = 0, so that the initial DC steady state of the
+%                  Simscape solver (DoDC, which charges the DC-link capacitors) does not see the grid sources:
+%                  with them it would put DC currents limited only by the resistances in the inductors
 %   Simscape Foundation blocks only (no Specialized Power Systems), one Solver Configuration with the local
 %   backward-Euler solver at param.sim.tc; fixed step param.sim.tc, stop time param.tb.t_end. The struct param
-%   comes from init_pgfm_droop (base workspace or Simulink.SimulationInput/setVariable).
+%   comes from init_pgfm_droop (base workspace or Simulink.SimulationInput/setVariable). The times of the Step
+%   blocks are min(t, 1e6): a Step needs a finite time, param.tb keeps inf for "never".
 %
 %   Requirements on the MATLAB path: the library repository (pwr-control/library) with grid_forming_dqctrl.slx in
 %   the droop mode (November 2026) and afe_ssc_lib; Simscape.
@@ -43,7 +47,9 @@ function mdl = build_pgfm_droop(do_save)
     if bdIsLoaded(mdl)
         close_system(mdl, 0);
     end
+    ws = warning('off', 'all');                 % the old pgfm_droop.slx on the path shadows the new model
     new_system(mdl);
+    warning(ws);
     set_param(mdl, 'SolverType', 'Fixed-step', 'Solver', 'ode1', 'FixedStep', 'param.sim.tc', ...
         'StartTime', '0', 'StopTime', 'param.tb.t_end', 'EnableMultiTasking', 'off', ...
         'SaveTime', 'off', 'SaveOutput', 'off', 'SaveState', 'off', 'SaveFinalState', 'off', ...
@@ -103,7 +109,7 @@ function local_module(sys, k, blk)
     add_block(blk, g, 'Position', [420 30 600 290]);
     set_param(g, 'p', sprintf('param.mod(%d)', k));
 
-    add_block('simulink/Sources/Step', [sys '/sync'], 'Time', sprintf('param.tb.sync_t(%d)', k), ...
+    add_block('simulink/Sources/Step', [sys '/sync'], 'Time', sprintf('min(param.tb.sync_t(%d), 1e6)', k), ...
         'Before', 'zeros(5, 1)', 'After', sprintf('param.tb.sync_after(:, %d)', k), ...
         'SampleTime', 'param.sim.tc', 'VectorParams1D', 'off', 'Position', [300 85 340 115]);
     add_block('fl_lib/Electrical/Electrical Sources/DC Voltage Source', [sys '/Vdc'], ...
@@ -116,7 +122,7 @@ function local_module(sys, k, blk)
         'Position', [700 40 770 60]);
     add_block('simulink/Sinks/Terminator', [sys '/sync_out'], 'Position', [700 140 720 160]);
 
-    add_block('simulink/Sources/Step', [sys '/trip_cmd'], 'Time', sprintf('param.tb.t_trip(%d)', k), ...
+    add_block('simulink/Sources/Step', [sys '/trip_cmd'], 'Time', sprintf('min(param.tb.t_trip(%d), 1e6)', k), ...
         'Before', '1', 'After', '0', 'SampleTime', 'param.sim.tc', 'Position', [100 330 140 360]);
     add_block('nesl_utility/Simulink-PS Converter', [sys '/trip_sps'], 'Position', [180 335 210 355]);
     local_sps_zero(sys, 'trip_sps');
@@ -165,15 +171,21 @@ function local_network(net)
         'LocalSolverSampleTime', 'param.sim.tc', 'DoFixedCost', 'on', ...
         'MaxNonlinIter', 'param.sim.nonlinear_iterations', 'MaxModeIter', '2', 'DoDC', 'on');
 
-    add_block('simulink/Sources/Step', [net '/step_cmd'], 'Time', 'param.tb.t_step', 'Before', '0', ...
+    add_block('simulink/Sources/Step', [net '/step_cmd'], 'Time', 'min(param.tb.t_step, 1e6)', 'Before', '0', ...
         'After', '1', 'SampleTime', 'param.sim.tc', 'Position', [560 640 600 670]);
     add_block('nesl_utility/Simulink-PS Converter', [net '/step_sps'], 'Position', [630 645 660 665]);
     local_sps_zero(net, 'step_sps');
-    add_block('simulink/Sources/Step', [net '/breaker_cmd'], 'Time', 'param.tb.t_open', 'Before', '1', ...
-        'After', '0', 'SampleTime', 'param.sim.tc', 'Position', [40 640 80 670]);
-    add_block('nesl_utility/Simulink-PS Converter', [net '/breaker_sps'], 'Position', [110 645 140 665]);
+    add_block('simulink/Sources/Step', [net '/breaker_close'], 'Time', 'min(param.tb.t_close, 1e6)', ...
+        'Before', '0', 'After', '1', 'SampleTime', 'param.sim.tc', 'Position', [20 600 60 630]);
+    add_block('simulink/Sources/Step', [net '/breaker_open'], 'Time', 'min(param.tb.t_open, 1e6)', ...
+        'Before', '0', 'After', '1', 'SampleTime', 'param.sim.tc', 'Position', [20 660 60 690]);
+    add_block('simulink/Math Operations/Sum', [net '/breaker_cmd'], 'Inputs', '+-', ...
+        'Position', [80 635 100 655]);
+    add_block('nesl_utility/Simulink-PS Converter', [net '/breaker_sps'], 'Position', [120 635 150 655]);
     local_sps_zero(net, 'breaker_sps');
     add_line(net, 'step_cmd/1', 'step_sps/1', 'autorouting', 'on');
+    add_line(net, 'breaker_close/1', 'breaker_cmd/1', 'autorouting', 'on');
+    add_line(net, 'breaker_open/1', 'breaker_cmd/2', 'autorouting', 'on');
     add_line(net, 'breaker_cmd/1', 'breaker_sps/1', 'autorouting', 'on');
 
     earth = local_pc(net, 'earth', 'L', 1);
@@ -228,7 +240,7 @@ function t = local_switch(sys, sw, sps)
     src = local_pc(sys, sps, 'R', 1);
     all_p = [ph.LConn ph.RConn];
     ctrl = [];
-    for h = [ph.RConn(1) ph.LConn ph.RConn(2:end)]
+    for h = [ph.RConn(1) ph.LConn ph.RConn(2:end)]   % R2026b: control RConn 1, terminals LConn 1 and RConn 2
         try
             add_line(sys, src, h, 'autorouting', 'on');
             ctrl = h;

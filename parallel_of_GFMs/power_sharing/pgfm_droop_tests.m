@@ -363,6 +363,12 @@ function local_plot(d, param, ev, file)
         for e = 1:numel(ev)
             xline(ax, ev(e).t, ':', 'Color', [0.4 0.4 0.4]);
         end
+        if j == 5
+            ym = max(max(d.is_avg(d.t > 0.02, :)));
+            if isfinite(ym) && ym > 0
+                ylim(ax, [0 1.1*ym]);
+            end
+        end
         if j == 1
             legend(ax, {'module 1', 'module 2', 'module 3'}, 'Location', 'best');
             yl = [min(min(d.f(d.t > 0.15, :))) max(max(d.f(d.t > 0.15, :)))];
